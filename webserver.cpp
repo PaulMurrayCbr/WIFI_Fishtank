@@ -13,8 +13,140 @@ extern byte favicon_ico[];
 extern unsigned int favicon_ico_len;
 
 void Webserver::setup() {
- server.begin();
- LOG("server started"); 
+  server.begin();
+  LOG("server started");
+}
+
+
+const int MAXLN = 256;
+char ln[MAXLN + 1];
+int contentLength;
+char contentType[MAXLN + 1];
+char requestMethod[MAXLN + 1];
+char requestURL[MAXLN + 1];
+char requestVersion[MAXLN + 1];
+
+
+boolean readLine(WiFiClient &client) {
+  int i = 0;
+  boolean cr = false;
+
+  for (;;) {
+    if (!client.connected()) return false;
+    if (!client.available()) continue;
+    char c = client.read();
+    switch (c) {
+      case '\r':
+        if (cr) {
+          // should never happen
+          if (i < MAXLN) ln[i++] = '\r';
+        }
+        cr  =  true;
+        break;
+
+      case '\n':
+        if (cr) {
+          // there's always room for the trailing NUL
+          ln[i++]  =  '\0';
+          return true;
+        }
+      // else fall through, treat \n like a regular character
+      // should never happen
+
+      default:
+        if (cr) {
+          // should never happen
+          if (i < MAXLN) ln[i++] = '\r';
+          cr  =  false;
+        }
+        if (i < MAXLN) ln[i++] = c;
+        break;
+    }
+  }
+}
+
+void parseRequestLine() {
+  char *p = ln;
+  char *q;
+
+  q = requestMethod;
+  while (*p && (q - requestMethod) < MAXLN && *p != ' ') {
+    *q++ = *p++;
+  }
+  *q = '\0';
+  if (*p) p++;
+
+  q = requestURL;
+  while (*p && (q - requestURL) < MAXLN && *p != ' ') {
+    *q++ = *p++;
+  }
+  *q = '\0';
+  if (*p) p++;
+
+  q = requestVersion;
+  while (*p && (q - requestVersion) < MAXLN && *p != ' ') {
+    *q++ = *p++;
+  }
+  *q = '\0';
+  if (*p) p++;
+
+  LOGN(F("request method: "));
+  LOG(requestMethod);
+
+  LOGN(F("request URL: "));
+  LOG(requestURL);
+
+  LOGN(F("request Version: "));
+  LOG(requestVersion);
+
+}
+
+boolean readRequestHeader(WiFiClient &client) {
+  if (!readLine(client)) return false; // read the http request line
+
+  LOGN(F("Request line: "));
+  LOG(ln);
+  parseRequestLine();
+
+  contentLength  =  -1;  // initialize
+  contentType[0] = '\0';
+
+  if (strcmp(requestVersion, "HTTP/1.1")) return false;
+
+  // we are assuming http 1.1. Read lines until we get a blank line
+  do {
+    if (!readLine(client)) return false; // read a header
+    LOG(ln);
+    if (strncmp(ln, "Content-Length: ", 16) == 0) {
+      contentLength  =  atoi(ln + 16);
+    }
+    if (strncmp(ln, "Content-Type: ", 14) == 0) {
+      strncpy(contentType, ln + 14, MAXLN);
+    }
+  }
+  while (strlen(ln) > 0);
+  return true;
+}
+
+
+const char unsupportedMethod[] PROGMEM = R"=====(HTTP/1.1 405 Method Not Allowed
+Content-Type: text/html
+Connection: close
+
+<html><body>This service only accepts GET requests</body></html>
+)=====";
+
+const char staticOK[] PROGMEM = R"=====(HTTP/1.1 200 OK
+Content-Type: text/html
+Connection: close
+
+<html><body>Yes, we have HTML.</body></html>
+)=====";
+
+
+void reply(WiFiClient &client, const char* p) {
+    char ch;
+    while(ch =  pgm_read_byte_near(p++))  client.print(ch);
 }
 
 void Webserver::loop() {
@@ -23,49 +155,30 @@ void Webserver::loop() {
   if (!client) {
     return;
   }
-  
+
   // Wait until the client sends some data
-  Serial.println("new client");
-  while(!client.available()){
+  LOG("new client");
+  while (!client.available()) {
     delay(1);
   }
-  
-  // Read the first line of the request
-  String req = client.readStringUntil('\r');
-  Serial.println(req);
-  client.flush();
-  
-  // Match the request
-  int val;
-  if (req.indexOf("/gpio/0") != -1)
-    val = 0;
-  else if (req.indexOf("/gpio/1") != -1)
-    val = 1;
-  else {
-    Serial.println("invalid request");
+
+  if (!readRequestHeader(client)) {
     client.stop();
     return;
   }
-
-  // Set GPIO2 according to the request
-  digitalWrite(2, val);
+  else if (strcmp(requestMethod, "GET")) {
+    reply(client, unsupportedMethod);
+    return;
+  }
+  else {
+    reply(client, staticOK);
+  }
   
-  client.flush();
-
-  // Prepare the response
-  String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>\r\nGPIO is now ";
-  s += (val)?"high":"low";
-  s += "</html>\n";
-
-  // Send the response to the client
-  client.print(s);
+  // give the web browser time to receive the data
   delay(1);
-  Serial.println("Client disonnected");
-
-  // The client will actually be disconnected 
-// when the function returns and 'client' object is detroyed  
-
-
+  // close the connection:
+  client.stop();
 }
+
 
 
