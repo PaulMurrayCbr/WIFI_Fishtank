@@ -20,13 +20,38 @@ Connection: close
 <html><body>This service only accepts GET requests</body></html>
 )=====";
 
-const char staticOK[] PROGMEM = R"=====(HTTP/1.1 200 OK
+const char notFound[] PROGMEM = R"=====(HTTP/1.1 404 Not Found
 Content-Type: text/html
 Connection: close
 
-<html><body>Yes, we have HTML.</body></html>
+<html><body>Not found.</body></html>
 )=====";
 
+const char homePage1[] PROGMEM = R"=====(HTTP/1.1 200 OK
+Content-Type: text/html
+Connection: close
+
+<!DOCTYPE html 
+      PUBLIC "-//W3C//DTD HTML 4.01//EN"
+      "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en-US">
+<head profile="http://www.w3.org/2005/10/profile">
+<link rel="icon" 
+      type="image/x-icon" 
+      href="/favicon.ico" />
+<title>Fishtank Moon</title>
+</head> 
+<body>
+<h1>Fishtank Moon</h1>
+<p>
+Wecome to fishtank moon.
+</p>
+)=====";
+
+const char homePage2[] PROGMEM = R"=====(
+</body>
+</html>
+)=====";
 
 class WebserverPvt {
   friend Webserver;
@@ -45,6 +70,8 @@ class WebserverPvt {
   char requestVersion[MAXLN + 1];
 
   void setup();
+  void mainPage(WiFiClient &client);
+  void favicon(WiFiClient &client);
   
   boolean readLine(WiFiClient &client) {
     int i = 0;
@@ -108,6 +135,16 @@ class WebserverPvt {
     }
     *q = '\0';
     if (*p) p++;
+
+#ifdef DEBUG
+    LOGN("Request Method: ");
+    LOG(requestMethod);
+    LOGN("Request URL: ");
+    LOG(requestURL);
+    LOGN("Request Version: ");
+    LOG(requestVersion);
+
+#endif    
   }
   
   boolean readRequestHeader(WiFiClient &client) {
@@ -134,10 +171,19 @@ class WebserverPvt {
   }
 
   void reply(WiFiClient &client, const char* p) {
-      char ch;
-      while(ch =  pgm_read_byte_near(p++))  client.print(ch);
+    LOG("REPLY [");
+    char ch; 
+    while(ch =  pgm_read_byte_near(p++)) {  
+      client.print(ch); 
+      LOGN(ch);
+    }
+    LOG("\n]");
   }
 
+  void reply(WiFiClient &client, const __FlashStringHelper* p) {
+    reply(client, (const char *) p);
+  }
+  
   void doConnecting();
 
   void doConnected() {
@@ -161,8 +207,15 @@ class WebserverPvt {
       reply(client, unsupportedMethod);
       return;
     }
+
+    if(strcmp(requestURL, "/") == 0) {
+      mainPage(client);
+    }
+    else if(strcmp(requestURL, "/favicon.ico") == 0) {
+      favicon(client);
+    }
     else {
-      reply(client, staticOK);
+      reply(client, notFound);
     }
     
     // give the web browser time to receive the data
@@ -237,4 +290,24 @@ void Webserver::configChanged() {
   webserverPvt.configChanged();  
 }
 
+void WebserverPvt::mainPage(WiFiClient &client) {
+  log(sizeof(homePage1));
+  reply(client, homePage1);
+  log(sizeof(homePage2));
+  reply(client, homePage2);
+}
+
+void WebserverPvt::favicon(WiFiClient &client) {
+  reply(client, F("HTTP/1.1 200 OK\r\n"));
+  reply(client, F("Content-Type: img/x-icon\r\n"));
+  reply(client, F("Content-Length: "));
+  client.print(favicon_ico_len);
+  reply(client, F("\r\n"));
+  reply(client, F("Connection: close\r\n"));
+  reply(client, F("\r\n"));
+
+  for(int i = 0; i<favicon_ico_len; i++) {
+    client.print((char)pgm_read_byte_near(favicon_ico+i));
+  }
+}
 

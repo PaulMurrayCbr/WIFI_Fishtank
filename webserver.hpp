@@ -1,7 +1,7 @@
 #ifndef WFFT_WEBSERVER
 #define WFFT_WEBSERVER 1
 
-#import "config.hpp"
+#include "config.hpp"
 
 class Webserver  : public Runnable, ConfigListener  {
     void setup();
