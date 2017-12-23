@@ -1,10 +1,12 @@
 #ifndef WFFT_WEBSERVER
 #define WFFT_WEBSERVER 1
 
-class Webserver {
-  public:
-  void setup();
-  void loop();
+#import "config.hpp"
+
+class Webserver  : public Runnable, ConfigListener  {
+    void setup();
+    void loop();
+    void configChanged();
 };
 
 extern Webserver webserver;

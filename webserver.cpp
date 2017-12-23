@@ -4,6 +4,7 @@
 
 #include "base.hpp"
 #include "webserver.hpp"
+#include "config.hpp"
 
 WiFiServer server(80);
 
@@ -13,6 +14,27 @@ extern byte favicon_ico[];
 extern unsigned int favicon_ico_len;
 
 void Webserver::setup() {
+  LOGN(F("\nConnecting to "));
+  LOG(config.ssid);
+
+  WiFi.begin(config.ssid, config.password); // connecting to a WPA/WPA2 network
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    LOGN(F("."));
+  }
+
+  LOG(F("\nWiFi connected"));
+  LOGN(F("SSID: "));
+  LOG(WiFi.SSID());
+  long rssi = WiFi.RSSI();
+  LOGN(F("Signal Strength (RSSI): "));
+  LOGN(rssi);
+  LOG(F(" dBm"));
+  LOGN(F("IP address: "));
+  LOGN(WiFi.localIP());
+  LOG();
+
   server.begin();
   LOG("server started");
 }
@@ -180,5 +202,8 @@ void Webserver::loop() {
   client.stop();
 }
 
+void Webserver::configChanged() {
+  
+}
 
 

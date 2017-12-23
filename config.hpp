@@ -14,6 +14,26 @@ class Config {
 
 };
 
+class ConfigListener {
+    static ConfigListener *headConfigListener;
+    ConfigListener *nextConfigListener;
+
+    virtual void configChanged() = 0;
+
+  public:
+    ConfigListener() {
+      nextConfigListener = headConfigListener;
+      headConfigListener = this;
+    }
+
+    static void notifyConfigChanged() {
+      for (ConfigListener *r = headConfigListener; r; r = r->nextConfigListener)
+        r->configChanged();
+    }
+
+};
+
+
 extern Config config;
 
 

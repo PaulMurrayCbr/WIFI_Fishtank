@@ -17,3 +17,29 @@
 
 #endif
 
+class Runnable {
+    static Runnable *headRunnable;
+    Runnable *nextRunnable;
+
+    virtual void setup() = 0;
+    virtual void loop() = 0;
+
+  public:
+    Runnable() {
+      nextRunnable = headRunnable;
+      headRunnable = this;
+    }
+
+    static void setupAll() {
+      for (Runnable *r = headRunnable; r; r = r->nextRunnable)
+        r->setup();
+    }
+
+    static void loopAll() {
+      for (Runnable *r = headRunnable; r; r = r->nextRunnable)
+        r->loop();
+    }
+
+};
+
+

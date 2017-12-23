@@ -6,6 +6,9 @@
 
 Config config;
 
+ConfigListener *ConfigListener::headConfigListener = NULL;
+
+
 void Config::setup() {
   LOG(F("Reading congfig from EEPROM"));
   EEPROM.begin(0);
