@@ -31,5 +31,6 @@ void Config::setup() {
 
 void Config::save() {
   LOG(F("Saving config to EEPROM"));
+  ConfigListener::notifyAll();
 }
 

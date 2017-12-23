@@ -26,7 +26,7 @@ class ConfigListener {
       headConfigListener = this;
     }
 
-    static void notifyConfigChanged() {
+    static void notifyAll() {
       for (ConfigListener *r = headConfigListener; r; r = r->nextConfigListener)
         r->configChanged();
     }
