@@ -65,12 +65,22 @@ class WebserverPvt {
   state = CONNECTING;
 
   static const int MAXLN = 256;
+  static const int MAXPARAMS = 6;
+  
   char ln[MAXLN + 1];
   int contentLength;
   char contentType[MAXLN + 1];
   char requestMethod[MAXLN + 1];
   char requestURL[MAXLN + 1];
   char requestVersion[MAXLN + 1];
+
+  char parsed[MAXLN+1];
+
+  char *requestPage;
+  int requestParams;
+  char *paramName[MAXPARAMS+1];
+  char *paramValue[MAXPARAMS+1];
+
 
   void setup();
   void mainPage(WiFiClient &client);
@@ -148,6 +158,46 @@ class WebserverPvt {
     LOG(requestVersion);
 
 #endif    
+    strcpy(parsed, requestURL);
+    p = parsed;
+
+    requestPage = p;
+    char delim;
+    while((delim = *p) && delim != '?') p++;
+    *p = 0;
+
+    LOGN("page is [");
+    LOGN(requestPage);
+    LOGN("] ");
+    LOG(delim);
+    
+    for(requestParams = 0; (delim=='?'||delim=='&') && requestParams < MAXPARAMS; requestParams++) {
+      paramName[requestParams] = ++p;
+      while((delim = *p) && delim != '&' && delim  != '=') p++;
+      *p=0;
+      LOGN("param is [");
+      LOGN(paramName[requestParams]);
+      LOGN("] ");
+      LOG(delim);
+      if(delim == '=') {
+        paramValue[requestParams] = ++p;
+        while((delim = *p) && delim != '&') p++;
+        *p = '\0';
+        LOGN("param value is [");
+        LOGN(paramValue[requestParams]);
+        LOGN("] ");
+        LOG(delim);
+      }
+      else {
+        paramValue[requestParams] = p;
+        LOG("no param value");
+      }
+    }
+
+    paramName[requestParams] = NULL;
+    paramValue[requestParams] = NULL;
+
+
   }
   
   boolean readRequestHeader(WiFiClient &client) {
@@ -174,13 +224,13 @@ class WebserverPvt {
   }
 
   void reply(WiFiClient &client, const char* p) {
-    LOG("REPLY [");
+//    LOG("REPLY [");
     char ch; 
     while(ch =  pgm_read_byte_near(p++)) {  
       client.print(ch); 
-      LOGN(ch);
+//      LOGN(ch);
     }
-    LOG("\n]");
+//    LOG("\n]");
   }
 
   void reply(WiFiClient &client, const __FlashStringHelper* p) {
@@ -259,6 +309,25 @@ class WebserverPvt {
       (s[1]-'0') * 60 +
       (s[3]-'0') * 10 +
       (s[4]-'0') ;
+  }
+
+  int findParam(char *s) {
+    for(int i = 0; i<requestParams; i++) {
+      if(!strcmp(s, paramName[i])) return i;
+    }
+    return -1;
+  }
+
+  boolean hasParam(char *s) {
+    return findParam(s) != -1;
+  }
+
+  char *getParam(char *s) {
+    return paramValue[findParam(s)];
+  }
+
+  int getParamInt(char *s) {
+    return atoi(getParam(s));
   }
 
 } webserverPvt;
