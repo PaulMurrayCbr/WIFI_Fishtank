@@ -84,6 +84,9 @@ class WebserverPvt {
 
   void setup();
   void mainPage(WiFiClient &client);
+  void setTime(WiFiClient &client);
+  void setSchedule(WiFiClient &client);
+  void setMoon(WiFiClient &client);
   void favicon(WiFiClient &client);
   
   boolean readLine(WiFiClient &client) {
@@ -280,11 +283,20 @@ class WebserverPvt {
       return;
     }
 
-    if(strcmp(requestURL, "/") == 0) {
+    if(strcmp(requestPage, "/") == 0) {
       mainPage(client);
     }
-    else if(strcmp(requestURL, "/favicon.ico") == 0) {
+    else if(strcmp(requestPage, "/favicon.ico") == 0) {
       favicon(client);
+    }
+    else if(strcmp(requestPage, "/setTime") == 0) {
+      setTime(client);
+    }
+    else if(strcmp(requestPage, "/setSchedule") == 0) {
+      setSchedule(client);
+    }
+    else if(strcmp(requestPage, "/setMoon") == 0) {
+      setMoon(client);
     }
     else {
       reply(client, notFound);
@@ -338,7 +350,8 @@ class WebserverPvt {
   }
 
   boolean hasParam(char *s) {
-    return findParam(s) != -1;
+    int p = findParam(s);
+    return findParam(s) != -1 && *paramValue[p];
   }
 
   char *getParam(char *s) {
@@ -347,6 +360,16 @@ class WebserverPvt {
 
   int getParamInt(char *s) {
     return atoi(getParam(s));
+  }
+
+  int getParamMins(char *s) {
+    int ret = 0;
+    char *p = getParam(s);
+    ret += (int)(p[0]-'0') * 600;
+    ret += (int)(p[1]-'0') * 60;
+    ret += (int)(p[3]-'0') * 10;
+    ret += (int)(p[4]-'0');
+    return ret;
   }
 
 } webserverPvt;
@@ -510,5 +533,66 @@ void WebserverPvt::favicon(WiFiClient &client) {
   for(int i = 0; i<favicon_ico_len; i++) {
     client.print((char)pgm_read_byte_near(favicon_ico+i));
   }
+}
+
+const char goBack[] PROGMEM = R"=====(HTTP/1.1 303 See Other
+Content-Type: text/html
+Location: /
+Connection: close
+
+<!DOCTYPE html 
+      PUBLIC "-//W3C//DTD HTML 4.01//EN"
+      "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en-US">
+<head profile="http://www.w3.org/2005/10/profile">
+<link rel="icon" href="/favicon.ico" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<title>Fishtank Moon</title>
+</head> 
+<body>
+<h1>Done</h1>
+<p>
+Done
+</p>
+)=====";
+
+void WebserverPvt::setTime(WiFiClient &client) {
+
+  
+  
+  reply(client, goBack);
+}
+
+void WebserverPvt::setSchedule(WiFiClient &client) {
+  if(hasParam("moonrise")) {
+    config.moonriseMins = getParamMins("moonrise");
+  }
+  if(hasParam("moonset")) {
+    config.moonsetMins = getParamMins("moonset");
+  }
+  
+  config.save();
+  reply(client, goBack);
+}
+
+void WebserverPvt::setMoon(WiFiClient &client) {
+  if(hasParam("strip-len")) {
+    config.stripLen = getParamInt("strip-len");
+  }
+  if(hasParam("moon-width")) {
+    config.stripLen = getParamInt("moon-width");
+  }
+  if(hasParam("rgb-r")) {
+    config.rgbR = getParamInt("rgb-r");
+  }
+  if(hasParam("rgb-g")) {
+    config.rgbG = getParamInt("rgb-g");
+  }
+  if(hasParam("rgb-b")) {
+    config.rgbB = getParamInt("rgb-b");
+  }
+
+  config.save();
+  reply(client, goBack);
 }
 
