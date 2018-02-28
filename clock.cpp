@@ -43,6 +43,12 @@ class ClockPvt {
       return rtc.now();
     }
 
+    void setDateTime(DateTime t) {
+      rtc.adjust(t);
+      update_tod();
+      ClockListener::notifyAll(timeOfDay_min);
+    }
+
 } clockPvt;
 
 
@@ -63,6 +69,10 @@ int Clock::getTimeOfDay_min() {
 
 DateTime Clock::getDateTime() {
   return clockPvt.getDateTime();
+}
+
+void Clock::setDateTime(DateTime t) {
+  return clockPvt.setDateTime(t);
 }
 
 

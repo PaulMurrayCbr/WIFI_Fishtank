@@ -10,6 +10,7 @@ class Clock: public Runnable {
 
     int getTimeOfDay_min();
     DateTime getDateTime();
+    void setDateTime(DateTime t);
 };
 
 class ClockListener {

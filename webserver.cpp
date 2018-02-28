@@ -557,8 +557,26 @@ Done
 )=====";
 
 void WebserverPvt::setTime(WiFiClient &client) {
-
+  DateTime t = clock.getDateTime();
   
+  int yy = t.year();
+  int mm = t.month();
+  int dd = t.day();
+  int h = t.hour();
+  int m = t.minute();
+  
+  if(hasParam("date")) {
+    yy = atoi(getParam("date"));
+    mm = atoi(getParam("date")+5);
+    dd = atoi(getParam("date")+8);
+  }
+
+  if(hasParam("time")) {
+    h = atoi(getParam("time"));
+    m = atoi(getParam("time")+3);
+  }
+
+  clock.setDateTime(DateTime(yy,mm,dd,h,m,0));
   
   reply(client, goBack);
 }
