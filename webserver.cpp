@@ -6,6 +6,8 @@
 #include "webserver.hpp"
 #include "config.hpp"
 
+#include "clock.hpp"
+
 WiFiServer server(80);
 
 Webserver webserver;
@@ -36,9 +38,8 @@ Connection: close
       "http://www.w3.org/TR/html4/strict.dtd">
 <html lang="en-US">
 <head profile="http://www.w3.org/2005/10/profile">
-<link rel="icon" 
-      type="image/x-icon" 
-      href="/favicon.ico" />
+<link rel="icon" href="/favicon.ico" />
+<link rel="shortcut icon" href="/favicon.ico" />
 <title>Fishtank Moon</title>
 </head> 
 <body>
@@ -291,9 +292,55 @@ void Webserver::configChanged() {
 }
 
 void WebserverPvt::mainPage(WiFiClient &client) {
-  log(sizeof(homePage1));
   reply(client, homePage1);
-  log(sizeof(homePage2));
+
+  DateTime dt = clock.getDateTime();
+
+  client.print("<p>");
+  client.print((int)dt.year()); 
+  client.print("/");
+  client.print((int)dt.month()); 
+  client.print("/");
+  client.print((int)dt.day()); 
+  client.print(" ");
+  client.print((int)dt.hour()); 
+  client.print(":");
+  client.print((int)dt.minute()); 
+  client.print(":");
+  client.print((int)dt.second()); 
+  client.print("</p>");
+  
+
+  reply(client, F("<h2>Set time</h2>"));
+  reply(client, F("<form  method='get' action='/setTime'>"));  
+  reply(client, F("Date "));
+  reply(client, F("<input name='date' type='date'></input>"));
+  reply(client, F(" Time "));
+  reply(client, F("<input name='time' type='time'></input>"));
+  reply(client, F("<input name='set' type='submit'></input>"));
+  reply(client, F("</form>"));  
+
+  reply(client, F("<h2>Set schedule</h2>"));
+  reply(client, F("<form method='get' action='/setSchendule'>"));  
+  reply(client, F("Moonrise "));
+  reply(client, F("<input name='moonrise' type='time'></input>"));
+  reply(client, F("Moonset "));
+  reply(client, F("<input name='moonset' type='time'></input>"));
+  reply(client, F("<input name='set' type='submit'></input>"));
+  reply(client, F("</form>"));  
+
+  reply(client, F("<h2>Moon</h2>"));
+  // brightness, RGB, width
+  reply(client, F("<form method='get' action='/setMoon'>"));  
+  reply(client, F("Strip length <input name='strip-len' type='number' min='1' max='255'></input>"));
+  reply(client, F("<br/>Moon width <input name='moon-width' type='number' min='1' max='10'></input>"));
+  reply(client, F("<br/>Moon colour RGB"));
+  reply(client, F("<input name='rgb-r' type='number' min='0' max='255'></input>"));
+  reply(client, F("<input name='rgb-g' type='number' min='0' max='255'></input>"));
+  reply(client, F("<input name='rgb-b' type='number' min='0' max='255'></input>"));
+  reply(client, F("</br><input name='set' type='submit'></input>"));
+  reply(client, F("</form>"));  
+  
   reply(client, homePage2);
 }
 
