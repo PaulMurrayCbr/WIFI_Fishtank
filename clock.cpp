@@ -36,7 +36,7 @@ class ClockPvt {
 
     void update_tod() {
       DateTime t = getDateTime();
-      timeOfDay_min = t.hour() * 24 + t.minute();
+      timeOfDay_min = t.hour() * 60 + t.minute();
     }
 
     DateTime getDateTime() {

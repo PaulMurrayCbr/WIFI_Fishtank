@@ -21,6 +21,17 @@ class UsbTalkPvt {
     }
     command;
 
+    void msg() {
+      Serial.println(F("Ready to configure"));
+      Serial.print(F("Current SSID: "));
+      Serial.println(config.ssid);
+      Serial.print(F("Current password: "));
+      Serial.println(config.password);
+      Serial.println(F("S - enter SSID"));
+      Serial.println(F("P - enter Password"));
+      Serial.println(F("? - this message"));
+    }
+
     void setup() {
 #ifndef DEBUG
       // We can't wait for serial, because there may be no USB connected
@@ -30,13 +41,8 @@ class UsbTalkPvt {
 
       if (!Serial) return;
 
-      Serial.println(F("Ready to configure"));
-      Serial.print(F("Current SSID: "));
-      Serial.println(config.ssid);
-      Serial.print(F("Current password: "));
-      Serial.println(config.password);
-      Serial.println(F("S - enter SSID"));
-      Serial.println(F("P - enter Password"));
+      msg();
+
     }
 
     void loop() {
@@ -77,13 +83,7 @@ class UsbTalkPvt {
                 state = ARGUMENT;
                 break;
               default:
-                Serial.println(F("\nReady to configure"));
-                Serial.print(F("Current SSID: "));
-                Serial.println(config.ssid);
-                Serial.print(F("Current password: "));
-                Serial.println(config.password);
-                Serial.println(F("S - enter SSID"));
-                Serial.println(F("P - enter Password"));
+                msg();
                 break;
             }
             break;

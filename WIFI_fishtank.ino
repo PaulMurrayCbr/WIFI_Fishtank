@@ -5,7 +5,27 @@
 #include "config.hpp"
 #include "webserver.hpp"
 
+#include "clock.hpp"
+
 Runnable *Runnable::headRunnable = NULL;
+
+class Foo: public ClockListener {
+  void clockTime(int timeOfDay_min) {
+    LOGN("clocktime ");
+    LOGN(timeOfDay_min);
+    LOGN('=');
+    LOGN(timeOfDay_min/60);
+    LOGN(':');
+    LOG(timeOfDay_min%60);
+  }
+} foo;
+
+class Bar: public ConfigListener {
+  void configChanged() {
+    LOG("Config updated");
+  }
+} bar;
+
 
 void setup() {
 #ifdef DEBUG

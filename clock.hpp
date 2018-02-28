@@ -17,6 +17,7 @@ class ClockListener {
   static ClockListener *headClockListener;
   ClockListener *nextClockListener;
 
+  protected:
   virtual void clockTime(int timeOfDay_min) = 0;
 
   public:

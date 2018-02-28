@@ -10,7 +10,7 @@ ConfigListener *ConfigListener::headConfigListener = NULL;
 
 
 void Config::setup() {
-  LOG(F("Reading congfig from EEPROM"));
+  LOG(F("Reading config from EEPROM"));
   EEPROM.begin(0);
   for (int i = 0; i < sizeof(config); i++) {
     ((byte *)&config)[i] = EEPROM.read(i);

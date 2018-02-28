@@ -27,6 +27,7 @@ class ConfigListener {
     static ConfigListener *headConfigListener;
     ConfigListener *nextConfigListener;
 
+  protected:
     virtual void configChanged() = 0;
 
   public:
