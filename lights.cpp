@@ -52,16 +52,24 @@ class LightsPvt : ConfigListener, ClockListener  {
       return;
     }
 
+    float center = (float)(t - t1) / (float)(t2-t1);
+    center = center * (config.stripLen + config.moonWidth) - config.moonWidth/2.0;
+
     for(int i = 0; i<config.stripLen; i++) {
-        pixels.setPixelColor(i, pixels.Color(0,8,16));
-    }
-    
-    zz = (zz+1)%10;
-    for(int i = 0; i<config.stripLen; i++) {
-      if(i % 10 == zz) {
-        pixels.setPixelColor(i, pixels.Color(0,150,0));
+      float d = i - center;
+      d /= config.moonWidth;
+      if(d >= -.5 && d <= .5) {
+        float b = (d+.5) * (.5-d); // a parabola
+        b *= 4;
+        b = sqrt(b);
+
+        pixels.setPixelColor(i, pixels.Color(
+          (int)(config.rgbR * b),
+          (int)(config.rgbG * b),
+          (int)(config.rgbB * b)));
       }
     }
+    
     pixels.show();
   }
 };
