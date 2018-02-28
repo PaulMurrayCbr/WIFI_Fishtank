@@ -123,6 +123,23 @@ class WebserverPvt {
       }
     }
   }    
+
+  void wwwdecode(char *s) {
+    char *out = s;
+    while(*s) {
+      if(*s == '%') {
+        char foo = s[3];
+        s[3] = '\0';
+        *out++ = (char) strtol(s+1, NULL, 16);
+        s += 3;
+        *s = foo;
+      }
+      else {
+        *out++ = *s++;
+      }
+    }
+    *out = '\0';
+  }
   
   void parseRequestLine() {
     char *p = ln;
@@ -175,6 +192,7 @@ class WebserverPvt {
       paramName[requestParams] = ++p;
       while((delim = *p) && delim != '&' && delim  != '=') p++;
       *p=0;
+      wwwdecode(paramName[requestParams]);
       LOGN("param is [");
       LOGN(paramName[requestParams]);
       LOGN("] ");
@@ -183,6 +201,7 @@ class WebserverPvt {
         paramValue[requestParams] = ++p;
         while((delim = *p) && delim != '&') p++;
         *p = '\0';
+        wwwdecode(paramValue[requestParams]);
         LOGN("param value is [");
         LOGN(paramValue[requestParams]);
         LOGN("] ");
