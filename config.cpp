@@ -25,6 +25,15 @@ void Config::setup() {
     strncpy(config.ssid, "Unit 61", sizeof(config.ssid));
     strncpy(config.password, "Bing.zal.mir3", sizeof(config.ssid));
 
+    config.moonriseMins = 18*60;
+    config.moonsetMins = 6*60;
+    config.stripLen = 50;
+    config.moonWidth = 5;
+
+    config.rgbR = 64;
+    config.rgbG = 64;
+    config.rgbB = 96;
+
     save();
   }
 }

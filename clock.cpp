@@ -14,8 +14,8 @@ class ClockPvt {
     int timeOfDay_min = 0;
 
     void setup() {
+      LOG("Initializing clock on SDA D3, SCL D4");
       Wire.begin(D3, D4);
-
     }
 
     void loop() {

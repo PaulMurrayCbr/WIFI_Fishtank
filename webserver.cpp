@@ -1,5 +1,7 @@
 #include <Arduino.h>
 
+#include <stdlib.h>
+
 #include <ESP8266WiFi.h>
 
 #include "base.hpp"
@@ -237,6 +239,28 @@ class WebserverPvt {
     
   }
 
+  char *itoa2(int val, char *s) {
+    s[0] = '0' + (val/10) % 10; 
+    s[1] = '0' + (val) % 10; 
+    s[2] = '\0';
+    return s;
+  }
+
+  char *mins2s(int val, char *s) {
+    itoa2(val/60, s);
+    s[2] = ':';
+    itoa2(val%60, s+3);
+    return s;
+  }
+
+  int s2mins(char *s) {
+    return
+      (s[0]-'0') * 600 +
+      (s[1]-'0') * 60 +
+      (s[3]-'0') * 10 +
+      (s[4]-'0') ;
+  }
+
 } webserverPvt;
 
 // this gear has to be declared extrernally, because the F macro just *will* not cooperate with gear.
@@ -295,50 +319,92 @@ void WebserverPvt::mainPage(WiFiClient &client) {
   reply(client, homePage1);
 
   DateTime dt = clock.getDateTime();
-
-  client.print("<p>");
-  client.print((int)dt.year()); 
-  client.print("/");
-  client.print((int)dt.month()); 
-  client.print("/");
-  client.print((int)dt.day()); 
-  client.print(" ");
-  client.print((int)dt.hour()); 
-  client.print(":");
-  client.print((int)dt.minute()); 
-  client.print(":");
-  client.print((int)dt.second()); 
-  client.print("</p>");
-  
+  char buf[10];
 
   reply(client, F("<h2>Set time</h2>"));
+  
+  client.print("<p>Current date/time: ");
+  client.print(itoa2(dt.day(), buf)); 
+  client.print('/');
+  client.print(itoa2(dt.month(), buf)); 
+  client.print('/');
+  client.print((int)dt.year()); 
+  client.print("&nbsp;");
+  client.print(itoa2(dt.hour(), buf)); 
+  client.print(':');
+  client.print(itoa2(dt.minute(), buf)); 
+  client.print(':');
+  client.print(itoa2(dt.second(), buf)); 
+  reply(client, F("</p>"));
+  
   reply(client, F("<form  method='get' action='/setTime'>"));  
   reply(client, F("Date "));
-  reply(client, F("<input name='date' type='date'></input>"));
+  reply(client, F("<input name='date' type='date' value='"));
+  client.print(itoa(dt.year(), buf, 10));
+  client.print('-');
+  client.print(itoa2(dt.month(), buf));
+  client.print('-');
+  client.print(itoa2(dt.day(), buf));
+  reply(client, F("'></input>"));
   reply(client, F(" Time "));
-  reply(client, F("<input name='time' type='time'></input>"));
-  reply(client, F("<input name='set' type='submit'></input>"));
+  reply(client, F("<input name='time' type='time' value='"));
+  client.print(itoa2(dt.hour(), buf));
+  client.print(':');
+  client.print(itoa2(dt.minute(), buf));
+  reply(client, F("'></input>"));
+  reply(client, F("<input name='set' value='Set Time' type='submit'></input>"));
   reply(client, F("</form>"));  
 
   reply(client, F("<h2>Set schedule</h2>"));
-  reply(client, F("<form method='get' action='/setSchendule'>"));  
+  reply(client, F("<p>Current schedule rise: "));
+  client.print(mins2s(config.moonriseMins, buf));
+  reply(client, F(", set: "));
+  client.print(mins2s(config.moonsetMins, buf));
+  reply(client, F("</p>"));
+  
+  reply(client, F("<form method='get' action='/setSchedule'>"));  
   reply(client, F("Moonrise "));
-  reply(client, F("<input name='moonrise' type='time'></input>"));
+  reply(client, F("<input name='moonrise' type='time' value='"));
+  client.print(mins2s(config.moonriseMins, buf));
+  reply(client, F("'></input>"));
   reply(client, F("Moonset "));
-  reply(client, F("<input name='moonset' type='time'></input>"));
-  reply(client, F("<input name='set' type='submit'></input>"));
+  reply(client, F("<input name='moonset' type='time' value='"));
+  client.print( mins2s(config.moonsetMins, buf));
+  reply(client, F("'></input>"));
+  reply(client, F("<input name='set' value='Set Schedule' type='submit'></input>"));
   reply(client, F("</form>"));  
 
   reply(client, F("<h2>Moon</h2>"));
   // brightness, RGB, width
+  reply(client, F("<p>Current length: "));
+  client.print(itoa(config.stripLen, buf, 10));
+  reply(client, F(", moon: "));
+  client.print(itoa(config.moonWidth, buf, 10));
+  reply(client, F(", RGB: "));
+  client.print(itoa(config.rgbR, buf, 10));
+  client.print('/');
+  client.print(itoa(config.rgbG, buf, 10));
+  client.print('/');
+  client.print(itoa(config.rgbB, buf, 10));
+  reply(client, F("</p>"));
   reply(client, F("<form method='get' action='/setMoon'>"));  
-  reply(client, F("Strip length <input name='strip-len' type='number' min='1' max='255'></input>"));
-  reply(client, F("<br/>Moon width <input name='moon-width' type='number' min='1' max='10'></input>"));
+  reply(client, F("Strip length <input name='strip-len' type='number' min='1' max='255' value='"));
+  client.print(itoa(config.stripLen, buf, 10));
+  reply(client, F("'></input>"));
+  reply(client, F("<br/>Moon width <input name='moon-width' type='number' min='1' max='10'  value='"));
+  client.print(itoa(config.moonWidth, buf, 10));
+  reply(client, F("'></input>"));
   reply(client, F("<br/>Moon colour RGB"));
-  reply(client, F("<input name='rgb-r' type='number' min='0' max='255'></input>"));
-  reply(client, F("<input name='rgb-g' type='number' min='0' max='255'></input>"));
-  reply(client, F("<input name='rgb-b' type='number' min='0' max='255'></input>"));
-  reply(client, F("</br><input name='set' type='submit'></input>"));
+  reply(client, F("<input name='rgb-r' type='number' min='0' max='255' value='"));
+  client.print(itoa(config.rgbR, buf, 10));
+  reply(client, F("'></input>"));
+  reply(client, F("<input name='rgb-g' type='number' min='0' max='255' value='"));
+  client.print(itoa(config.rgbG, buf, 10));
+  reply(client, F("'></input>"));
+  reply(client, F("<input name='rgb-b' type='number' min='0' max='255' value='"));
+  client.print(itoa(config.rgbB, buf, 10));
+  reply(client, F("'></input>"));
+  reply(client, F("</br><input name='set' value='Set Moon' type='submit'></input>"));
   reply(client, F("</form>"));  
   
   reply(client, homePage2);

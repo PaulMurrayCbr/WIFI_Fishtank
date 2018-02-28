@@ -2,7 +2,7 @@
 #define WFFT_CONFIG 1
 
 class Config {
-    static const uint32_t MAGIC_NUMBER = 0xF00D002;
+    static const uint32_t MAGIC_NUMBER = 0xF00D003;
     uint32_t magic_number;
 
   public:
@@ -12,6 +12,15 @@ class Config {
     char ssid[20] = "Unit 61"; // type your ssid
     char password[20] = "Bing.zal.mir3"; // type your password
 
+    int moonriseMins;
+    int moonsetMins;
+
+    int stripLen;
+    int moonWidth;
+
+    byte rgbR;
+    byte rgbG;
+    byte rgbB;
 };
 
 class ConfigListener {
