@@ -12,66 +12,63 @@ Lights lights;
 
 
 class LightsPvt : ConfigListener, ClockListener  {
-  friend Lights;
+    friend Lights;
+    const int MAX_STRIP = 120;
 
-  const int MAX_STRIP = 60;
+    Adafruit_NeoPixel pixels = Adafruit_NeoPixel(MAX_STRIP, D8, NEO_GRB + NEO_KHZ800);
 
-  Adafruit_NeoPixel pixels = Adafruit_NeoPixel(MAX_STRIP, D2, NEO_GRB + NEO_KHZ800);
-
-  void setup() {
-    pinMode(D2, OUTPUT);
-    LOG("pixel strip on D2");
-    pixels.begin();
-    pixels.clear();
-    pixels.show();
-  }
-
-  void loop() {}
-
-  void configChanged() {
-    show();  
-  }
-
-  void clockTime(int timeOfDay_min) {
-    show();
-  }
-
-  int zz = 0;
-
-  void show() {
-    pixels.clear();
-
-    int t1 = config.moonriseMins;
-    int t2 = config.moonsetMins; 
-
-    if(t2 < t1) t2 += 24*60;
-    int t = clock.getTimeOfDay_min();
-
-    if(t < t1 || t > t2) {
+    void setup() {
+//      pinMode(D8, OUTPUT);
+      LOG("pixel strip on D8");
+      pixels.begin();
+      pixels.clear();
       pixels.show();
-      return;
     }
 
-    float center = (float)(t - t1) / (float)(t2-t1);
-    center = center * (config.stripLen + config.moonWidth) - config.moonWidth/2.0;
+    void loop() {}
 
-    for(int i = 0; i<config.stripLen; i++) {
-      float d = i - center;
-      d /= config.moonWidth;
-      if(d >= -.5 && d <= .5) {
-        float b = (d+.5) * (.5-d); // a parabola
-        b *= 4;
-        b = sqrt(b);
+    void configChanged() {
+      pixels.setBrightness(config.brightness);
+      show();
+    }
 
-        pixels.setPixelColor(i, pixels.Color(
-          (int)(config.rgbR * b),
-          (int)(config.rgbG * b),
-          (int)(config.rgbB * b)));
+    void clockTick() {
+      show();
+    }
+
+    int zz = 0;
+
+    void show() {
+      pixels.clear();
+
+      long t1 = config.moonriseMins * 60L;
+      long t2 = config.moonsetMins * 60L;
+      long t = clock.getTimeOfDay_sec();
+
+      if (t2 < t1) t2 += 24L * 60L * 60L;
+      if (t < t1) t += 24L * 60L * 60L;
+      
+      float center = (float)(t - t1) / (float)(t2 - t1);
+      center *= config.stripLen;
+
+      for (int i = 0; i < config.stripLen; i++) {
+        float d = i - center;
+        d /= config.moonWidth / 2;
+
+        float b = 1 - fabs(d); // brightest in the center
+
+        if (b > 0) {
+          b *= b; // gamma correction, kinda-sorta
+
+          pixels.setPixelColor(i, pixels.Color(
+                                 (int)(config.rgbR * b),
+                                 (int)(config.rgbG * b),
+                                 (int)(config.rgbB * b)));
+        }
       }
+
+      pixels.show();
     }
-    
-    pixels.show();
-  }
 };
 
 LightsPvt lightsPvt;

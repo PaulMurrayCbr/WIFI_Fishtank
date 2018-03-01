@@ -12,10 +12,11 @@ class ClockPvt {
     friend Clock;
 
     int timeOfDay_min = 0;
+    long timeOfDay_sec = 0;
 
     void setup() {
-      LOG("Initializing clock on SDA D3, SCL D4");
-      Wire.begin(D3, D4);
+      LOG("Initializing clock on SDA D4, SCL D3");
+      Wire.begin(D4, D3);
     }
 
     void loop() {
@@ -34,9 +35,14 @@ class ClockPvt {
       return timeOfDay_min;
     }
 
+    long getTimeOfDay_sec() {
+      return timeOfDay_sec;
+    }
+
     void update_tod() {
       DateTime t = getDateTime();
       timeOfDay_min = t.hour() * 60 + t.minute();
+      timeOfDay_sec = t.hour() * 60L * 60L + t.minute() * 60L + t.second();
     }
 
     DateTime getDateTime() {
@@ -65,6 +71,10 @@ void Clock::loop() {
 
 int Clock::getTimeOfDay_min() {
   return clockPvt.getTimeOfDay_min();
+}
+
+long Clock::getTimeOfDay_sec() {
+  return clockPvt.getTimeOfDay_sec();
 }
 
 DateTime Clock::getDateTime() {

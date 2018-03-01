@@ -489,8 +489,10 @@ void WebserverPvt::mainPage(WiFiClient &client) {
   // brightness, RGB, width
   reply(client, F("<p>Current length: "));
   client.print(itoa(config.stripLen, buf, 10));
-  reply(client, F(", moon: "));
+  reply(client, F(", moon size: "));
   client.print(itoa(config.moonWidth, buf, 10));
+  reply(client, F(", moon brightness: "));
+  client.print(itoa(config.brightness, buf, 10));
   reply(client, F(", RGB: "));
   client.print(itoa(config.rgbR, buf, 10));
   client.print('/');
@@ -499,11 +501,14 @@ void WebserverPvt::mainPage(WiFiClient &client) {
   client.print(itoa(config.rgbB, buf, 10));
   reply(client, F("</p>"));
   reply(client, F("<form method='get' action='/setMoon'>"));  
-  reply(client, F("Strip length <input name='strip-len' type='number' min='1' max='60' value='"));
+  reply(client, F("Strip length <input name='strip-len' type='number' min='1' max='120' value='"));
   client.print(itoa(config.stripLen, buf, 10));
   reply(client, F("'></input>"));
   reply(client, F("<br/>Moon width <input name='moon-width' type='number' min='1' max='20'  value='"));
   client.print(itoa(config.moonWidth, buf, 10));
+  reply(client, F("'></input>"));
+  reply(client, F("<br/>Moon brightness <input name='brightness' type='number' min='0' max='255'  value='"));
+  client.print(itoa(config.brightness, buf, 10));
   reply(client, F("'></input>"));
   reply(client, F("<br/>Moon colour RGB"));
   reply(client, F("<input name='rgb-r' type='number' min='0' max='255' value='"));
@@ -599,6 +604,9 @@ void WebserverPvt::setMoon(WiFiClient &client) {
   }
   if(hasParam("moon-width")) {
     config.moonWidth = getParamInt("moon-width");
+  }
+  if(hasParam("brightness")) {
+    config.brightness = getParamInt("brightness");
   }
   if(hasParam("rgb-r")) {
     config.rgbR = getParamInt("rgb-r");

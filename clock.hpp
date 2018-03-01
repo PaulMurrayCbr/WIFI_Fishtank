@@ -9,6 +9,7 @@ class Clock: public Runnable {
     void loop();
 
     int getTimeOfDay_min();
+    long getTimeOfDay_sec();
     DateTime getDateTime();
     void setDateTime(DateTime t);
 };
@@ -18,7 +19,7 @@ class ClockListener {
   ClockListener *nextClockListener;
 
   protected:
-  virtual void clockTime(int timeOfDay_min) = 0;
+  virtual void clockTick() = 0;
 
   public:
   ClockListener() {
@@ -28,7 +29,7 @@ class ClockListener {
   
   static void notifyAll(int timeOfDay_min) {
     for (ClockListener *r = headClockListener; r; r = r->nextClockListener)
-      r->clockTime(timeOfDay_min);
+      r->clockTick();
   }
 
 };

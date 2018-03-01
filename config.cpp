@@ -30,9 +30,10 @@ void Config::setup() {
     config.stripLen = 50;
     config.moonWidth = 5;
 
-    config.rgbR = 64;
-    config.rgbG = 64;
-    config.rgbB = 96;
+    config.brightness = 255;
+    config.rgbR = 192;
+    config.rgbG = 192;
+    config.rgbB = 255;
 
     save();
   }

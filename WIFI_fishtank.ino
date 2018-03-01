@@ -10,13 +10,16 @@
 Runnable *Runnable::headRunnable = NULL;
 
 class Foo: public ClockListener {
-  void clockTime(int timeOfDay_min) {
+  void clockTick() {
     LOGN("clocktime ");
-    LOGN(timeOfDay_min);
+    long s = clock.getTimeOfDay_sec();
+    LOGN(s);
     LOGN('=');
-    LOGN(timeOfDay_min/60);
+    LOGN(s/60/60);
     LOGN(':');
-    LOG(timeOfDay_min%60);
+    LOGN((s/60)%60);
+    LOGN(':');
+    LOG(s%60);
   }
 } foo;
 

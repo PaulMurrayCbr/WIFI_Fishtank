@@ -2,7 +2,7 @@
 #define WFFT_CONFIG 1
 
 class Config {
-    static const uint32_t MAGIC_NUMBER = 0xF00D003;
+    static const uint32_t MAGIC_NUMBER = 0xF00D004;
     uint32_t magic_number;
 
   public:
@@ -17,6 +17,8 @@ class Config {
 
     int stripLen;
     int moonWidth;
+
+    byte brightness;
 
     byte rgbR;
     byte rgbG;
