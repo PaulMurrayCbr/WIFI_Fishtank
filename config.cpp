@@ -4,9 +4,12 @@
 #include "base.hpp"
 #include "config.hpp"
 
+#include "DEFAULT_SSID.hpp"
+
 Config config;
 
 ConfigListener *ConfigListener::headConfigListener = NULL;
+
 
 
 void Config::setup() {
@@ -22,8 +25,8 @@ void Config::setup() {
   else {
     LOG(F("Initializing config"));
     config.magic_number = config.MAGIC_NUMBER;
-    strncpy(config.ssid, "Unit 61", sizeof(config.ssid));
-    strncpy(config.password, "Bing.zal.mir3", sizeof(config.ssid));
+    strncpy(config.ssid, DEFAULT_SSID, sizeof(config.ssid));
+    strncpy(config.password, DEFAULT_PASSWORD, sizeof(config.password));
 
     config.moonriseMins = 18*60;
     config.moonsetMins = 6*60;
